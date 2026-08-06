@@ -2,8 +2,8 @@ name: Update GitHub Report
 
 on:
   schedule:
-    - cron: '0 2 * * *'   # UTC 2:00 每天自动运行
-  workflow_dispatch:      # 允许手动触发
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 jobs:
   build:
