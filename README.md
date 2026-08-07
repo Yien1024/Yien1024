@@ -1,10 +1,12 @@
 # Hi there 👋
 
 ## 📊 GitHub 活动报告
-> 自动更新于 2026-08-07 04:34 UTC
+> 自动更新于 2026-08-07 04:46 UTC
 
 ### 🔥 贡献日历
-![贡献日历](calendar.png)
+### 📅 Last 365 days
+![Last 365 days贡献日历](calendar_Last_365_days.png)
+
 
 ### 🏆 最近活跃仓库 Top 5
 1. **Yien1024/Yien1024** - 0 次提交
@@ -24,9 +26,9 @@
 ---
 
 ### ✨ GitHub 统计
-![GitHub stats](https://github-readme-stats.vercel.app/api?username=Yien1024&show_icons=true&theme=radical)
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=Yien1024&layout=compact&theme=radical)
-![GitHub streak](https://github-readme-streak-stats.herokuapp.com/?user=Yien1024&theme=radical)
+![GitHub stats](https://github-readme-stats.vercel.app/api?username=Yien1024&show_icons=true&theme=github&hide_border=true)
+![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=Yien1024&layout=compact&theme=github&hide_border=true)
+![GitHub streak](https://github-readme-streak-stats.herokuapp.com/?user=Yien1024&theme=github&hide_border=true)
 
 ---
 *✨ 此报告由 GitHub Actions 每天自动生成*
