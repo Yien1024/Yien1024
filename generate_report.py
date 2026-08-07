@@ -174,8 +174,8 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
         ax.text(x + block_size/2, y_labels, label,
                 ha='center', va='top', fontsize=7)
 
-    ax.text(start_x - 0.2, y_lessmore, 'Less', ha='right', fontsize=7, color='#586069')
-    ax.text(start_x + legend_width + 0.2, y_lessmore, 'More', ha='left', fontsize=7, color='#586069')
+    ax.text(start_x - , y_lessmore, 'Less', ha='right', fontsize=7, color='#586069')
+    ax.text(start_x + legend_width + , y_lessmore, 'More', ha='left', fontsize=7, color='#586069')
 
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
