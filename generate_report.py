@@ -101,8 +101,8 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
             grid[row, col] = day['contributionCount']
             all_dates.append(date_obj)
 
-    total_days = len(all_dates)
-    title_text = f'Contributions {year_label} ({total_days} days)'
+    # 已去掉天数，只保留年份
+    title_text = f'Contributions {year_label}'
 
     fig, ax = plt.subplots(figsize=(12, 4.5))
 
@@ -303,14 +303,14 @@ def generate_readme(monthly, yearly, streak, top_repos_md, years_with_calendar):
 """
     return readme
 
-# ---------------- 主流程（已修复：今年回退数据也显示 2026） ----------------
+# ---------------- 主流程 ----------------
 def main():
     print('🚀 开始生成报告...')
 
     current_year = datetime.utcnow().year
     years_with_calendar = []
 
-    # 1. 今年日历：优先用完整年份数据，失败则用最近365天但标题仍显示 2026
+    # 1. 今年日历：优先用完整年份，失败则用最近365天但标题仍显示年份
     weeks_this_year = get_contribution_calendar_for_year(current_year)
     if weeks_this_year:
         draw_calendar_heatmap(weeks_this_year, str(current_year), f'calendar_{current_year}.png')
@@ -320,10 +320,9 @@ def main():
     else:
         calendar_recent_data = get_recent_365_calendar()
         weeks_recent = calendar_recent_data['weeks']
-        # 关键修改：标签改为当前年份，而不是 'Last 365 days'
         draw_calendar_heatmap(weeks_recent, str(current_year), f'calendar_{current_year}.png')
         years_with_calendar.append(str(current_year))
-        print('⚠️ 今年完整数据获取失败，已使用最近365天数据（标题仍显示2026）')
+        print('⚠️ 今年完整数据获取失败，已使用最近365天数据（标题仍显示年份）')
         calendar_recent = weeks_recent
 
     # 2. 过去两年
