@@ -303,14 +303,14 @@ def generate_readme(monthly, yearly, streak, top_repos_md, years_with_calendar):
 """
     return readme
 
-# ---------------- 主流程 ----------------
+# ---------------- 主流程（已修复：今年回退数据也显示 2026） ----------------
 def main():
     print('🚀 开始生成报告...')
 
     current_year = datetime.utcnow().year
     years_with_calendar = []
 
-    # 1. 今年日历
+    # 1. 今年日历：优先用完整年份数据，失败则用最近365天但标题仍显示 2026
     weeks_this_year = get_contribution_calendar_for_year(current_year)
     if weeks_this_year:
         draw_calendar_heatmap(weeks_this_year, str(current_year), f'calendar_{current_year}.png')
@@ -320,9 +320,10 @@ def main():
     else:
         calendar_recent_data = get_recent_365_calendar()
         weeks_recent = calendar_recent_data['weeks']
-        draw_calendar_heatmap(weeks_recent, 'Last 365 days', 'calendar_Last_365_days.png')
-        years_with_calendar.append('Last 365 days')
-        print('✅ 最近365天日历已生成')
+        # 关键修改：标签改为当前年份，而不是 'Last 365 days'
+        draw_calendar_heatmap(weeks_recent, str(current_year), f'calendar_{current_year}.png')
+        years_with_calendar.append(str(current_year))
+        print('⚠️ 今年完整数据获取失败，已使用最近365天数据（标题仍显示2026）')
         calendar_recent = weeks_recent
 
     # 2. 过去两年
