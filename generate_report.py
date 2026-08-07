@@ -113,7 +113,7 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
         elif count <= 19: return color_map[3]
         else: return color_map[4]
 
-    # 绘制普通矩形（清晰稳定）
+    # 绘制矩形
     for r in range(7):
         for c in range(num_weeks):
             count = grid[r, c]
@@ -152,7 +152,7 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
 
     plt.title(title_text, fontsize=16, fontweight='bold', pad=15)
 
-    # ---- 图例：右对齐 ----
+    # ---- 图例：右对齐，Less/More 与网格边缘对齐 ----
     legend_labels = ['0', '1-4', '5-9', '10-19', '20+']
     legend_colors = color_map
     block_size = 0.7
@@ -174,8 +174,9 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
         ax.text(x + block_size/2, y_labels, label,
                 ha='center', va='top', fontsize=7)
 
-    ax.text(start_x - , y_lessmore, 'Less', ha='right', fontsize=7, color='#586069')
-    ax.text(start_x + legend_width + , y_lessmore, 'More', ha='left', fontsize=7, color='#586069')
+    # Less 左对齐图例左端，More 右对齐图例右端（也是网格右边界）
+    ax.text(start_x, y_lessmore, 'Less', ha='left', fontsize=7, color='#586069')
+    ax.text(start_x + legend_width, y_lessmore, 'More', ha='right', fontsize=7, color='#586069')
 
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
