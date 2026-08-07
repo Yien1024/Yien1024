@@ -1,5 +1,6 @@
 import requests
 import os
+import calendar
 from datetime import datetime, timedelta
 import matplotlib
 matplotlib.use('Agg')
@@ -12,7 +13,6 @@ repo_full = os.environ.get('GITHUB_REPOSITORY', '')
 if repo_full:
     USERNAME = repo_full.split('/')[0]
 else:
-    # 本地测试时可手动填写你的 GitHub 用户名
     USERNAME = '你的GitHub用户名'
 
 TOKEN = os.environ.get('GH_TOKEN')
@@ -21,8 +21,8 @@ if not TOKEN:
 
 HEADERS = {'Authorization': f'bearer {TOKEN}'}
 
-# ---------------- GraphQL：获取贡献日历 ----------------
-def get_contribution_calendar():
+# ---------------- 官方 API：最近 365 天贡献日历 ----------------
+def get_recent_365_calendar():
     query = '''
     query($username: String!) {
       user(login: $username) {
@@ -48,6 +48,23 @@ def get_contribution_calendar():
     data = res.json()
     return data['data']['user']['contributionsCollection']['contributionCalendar']
 
+# ---------------- 第三方 API：获取完整年份的贡献日历 ----------------
+def get_contribution_calendar_for_year(year):
+    url = f'https://github-contributions-api.deno.dev/{USERNAME}.json?year={year}'
+    try:
+        res = requests.get(url, timeout=10)
+        res.raise_for_status()
+        data = res.json()
+        if 'weeks' in data:
+            return data['weeks']
+        elif isinstance(data, list):
+            return data
+        else:
+            return None
+    except Exception as e:
+        print(f'⚠️ 无法获取 {year} 年数据: {e}')
+        return None
+
 # ---------------- REST：近期事件统计（含代码审查） ----------------
 def get_recent_stats(days):
     url = f'https://api.github.com/users/{USERNAME}/events/public'
@@ -72,8 +89,8 @@ def get_recent_stats(days):
             reviews += 1
     return (commits, prs, issues, reviews)
 
-# ---------------- 绘制日历热力图（圆角方格 + 图例） ----------------
-def draw_calendar_heatmap(weeks_data, filename):
+# ---------------- 绘制日历热力图（圆角、图例优化、标题加粗） ----------------
+def draw_calendar_heatmap(weeks_data, year_label, filename):
     num_weeks = len(weeks_data)
     grid = np.zeros((7, num_weeks), dtype=int)
     all_dates = []
@@ -83,6 +100,9 @@ def draw_calendar_heatmap(weeks_data, filename):
             row = date_obj.weekday()  # 0=Monday, 6=Sunday
             grid[row, col] = day['contributionCount']
             all_dates.append(date_obj)
+
+    total_days = len(all_dates)
+    title_text = f'Contributions {year_label} ({total_days} days)'
 
     fig, ax = plt.subplots(figsize=(12, 4.5))
 
@@ -94,7 +114,7 @@ def draw_calendar_heatmap(weeks_data, filename):
         elif count <= 19: return color_map[3]
         else: return color_map[4]
 
-    # 绘制圆角格子
+    # 圆角方格
     for r in range(7):
         for c in range(num_weeks):
             count = grid[r, c]
@@ -122,7 +142,7 @@ def draw_calendar_heatmap(weeks_data, filename):
     for col, month_label in month_positions.values():
         ax.text(col + 0.5, -0.8, month_label, ha='center', fontsize=8)
 
-    # 星期标签（周一=1 ... 周日=7）
+    # 星期标签（1~7）
     week_labels = ['1', '2', '3', '4', '5', '6', '7']
     for r, label in enumerate(week_labels):
         ax.text(-0.5, 6 - r + 0.5, label, va='center', ha='right', fontsize=7)
@@ -132,37 +152,33 @@ def draw_calendar_heatmap(weeks_data, filename):
     ax.set_aspect('equal')
     ax.axis('off')
 
-    # 标题（自动年份）
-    if all_dates:
-        latest_year = max(d.year for d in all_dates)
-    else:
-        latest_year = datetime.utcnow().year
-    plt.title(f'Contribution Calendar ({latest_year})', fontsize=12, pad=15)
+    # 标题（加粗加大）
+    plt.title(title_text, fontsize=16, fontweight='bold', pad=15)
 
-    # ---- 图例（圆角色块，清晰排列） ----
+    # ---- 图例（间距拉大） ----
     legend_labels = ['0', '1-4', '5-9', '10-19', '20+']
     legend_colors = color_map
-    start_x = num_weeks - 6
-    block_size = 0.8
-    spacing = 1.3
+    start_x = num_weeks - 6.5
+    block_size = 0.7
+    spacing = 1.5
     y_blocks = -2.2
-    y_labels = -2.9
+    y_labels = -3.0
     y_lessmore = -1.9
 
     for i, (color, label) in enumerate(zip(legend_colors, legend_labels)):
         x = start_x + i * spacing
         rect = mpatches.FancyBboxPatch(
             (x, y_blocks), block_size, block_size,
-            boxstyle="round,pad=0.1",
+            boxstyle="round,pad=0.08",
             linewidth=1, edgecolor='#d0d7de',
             facecolor=color
         )
         ax.add_patch(rect)
         ax.text(x + block_size/2, y_labels, label,
-                ha='center', va='top', fontsize=8)
+                ha='center', va='top', fontsize=6.5)
 
-    ax.text(start_x - 0.2, y_lessmore, 'Less', ha='right', fontsize=8, color='#586069')
-    ax.text(start_x + (len(legend_labels)-1)*spacing + block_size + 0.2, y_lessmore, 'More', ha='left', fontsize=8, color='#586069')
+    ax.text(start_x - 0.4, y_lessmore, 'Less', ha='right', fontsize=7, color='#586069')
+    ax.text(start_x + (len(legend_labels)-1)*spacing + block_size + 0.4, y_lessmore, 'More', ha='left', fontsize=7, color='#586069')
 
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
@@ -245,17 +261,21 @@ def calculate_streak(weeks_data):
         check_date -= timedelta(days=1)
     return streak
 
-# ---------------- 生成 README.md ----------------
-def generate_readme(monthly, yearly, streak, top_repos_md):
+# ---------------- 生成 README.md（统一 theme=github 徽章） ----------------
+def generate_readme(monthly, yearly, streak, top_repos_md, years_with_calendar):
     now = datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
+    calendar_imgs = ""
+    for yr_label in years_with_calendar:
+        file_suffix = yr_label.replace(' ', '_')
+        calendar_imgs += f"### 📅 {yr_label}\n![{yr_label}贡献日历](calendar_{file_suffix}.png)\n\n"
+
     readme = f"""# Hi there 👋
 
 ## 📊 GitHub 活动报告
 > 自动更新于 {now}
 
 ### 🔥 贡献日历
-![贡献日历](calendar.png)
-
+{calendar_imgs}
 ### 🏆 最近活跃仓库 Top 5
 {top_repos_md}
 
@@ -274,9 +294,9 @@ def generate_readme(monthly, yearly, streak, top_repos_md):
 ---
 
 ### ✨ GitHub 统计
-![GitHub stats](https://github-readme-stats.vercel.app/api?username={USERNAME}&show_icons=true&theme=radical)
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={USERNAME}&layout=compact&theme=radical)
-![GitHub streak](https://github-readme-streak-stats.herokuapp.com/?user={USERNAME}&theme=radical)
+![GitHub stats](https://github-readme-stats.vercel.app/api?username={USERNAME}&show_icons=true&theme=github&hide_border=true)
+![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username={USERNAME}&layout=compact&theme=github&hide_border=true)
+![GitHub streak](https://github-readme-streak-stats.herokuapp.com/?user={USERNAME}&theme=github&hide_border=true)
 
 ---
 *✨ 此报告由 GitHub Actions 每天自动生成*
@@ -287,24 +307,52 @@ def generate_readme(monthly, yearly, streak, top_repos_md):
 def main():
     print('🚀 开始生成报告...')
 
-    calendar = get_contribution_calendar()
-    draw_calendar_heatmap(calendar['weeks'], 'calendar.png')
-    print('✅ 日历热力图已生成')
+    current_year = datetime.utcnow().year
+    years_with_calendar = []
 
-    draw_weekly_line_chart(calendar['weeks'], 'weekly_line.png')
+    # 1. 今年日历
+    weeks_this_year = get_contribution_calendar_for_year(current_year)
+    if weeks_this_year:
+        draw_calendar_heatmap(weeks_this_year, str(current_year), f'calendar_{current_year}.png')
+        years_with_calendar.append(str(current_year))
+        print(f'✅ {current_year} 年完整日历已生成')
+        calendar_recent = weeks_this_year
+    else:
+        calendar_recent_data = get_recent_365_calendar()
+        weeks_recent = calendar_recent_data['weeks']
+        draw_calendar_heatmap(weeks_recent, 'Last 365 days', 'calendar_Last_365_days.png')
+        years_with_calendar.append('Last 365 days')
+        print('✅ 最近365天日历已生成')
+        calendar_recent = weeks_recent
+
+    # 2. 过去两年
+    for yr in [current_year-1, current_year-2]:
+        weeks_past = get_contribution_calendar_for_year(yr)
+        if weeks_past:
+            draw_calendar_heatmap(weeks_past, str(yr), f'calendar_{yr}.png')
+            years_with_calendar.append(str(yr))
+            print(f'✅ {yr} 年日历已生成')
+        else:
+            print(f'⚠️ 跳过 {yr} 年（无数据）')
+
+    # 3. 近7天折线图
+    draw_weekly_line_chart(calendar_recent, 'weekly_line.png')
     print('✅ 近7天趋势图已生成')
 
-    streak = calculate_streak(calendar['weeks'])
+    # 4. 连续贡献
+    streak = calculate_streak(calendar_recent)
     print(f'🔥 当前连续贡献 {streak} 天')
 
+    # 5. 月报/年报
     m = get_recent_stats(30)
     y = get_recent_stats(365)
 
+    # 6. 活跃仓库
     top5 = top_repos(days=90)
     top_repos_md = format_top_repos(top5)
-    print('✅ 活跃仓库 Top 5 已统计')
 
-    readme = generate_readme(m, y, streak, top_repos_md)
+    # 7. 生成 README
+    readme = generate_readme(m, y, streak, top_repos_md, years_with_calendar)
     with open('README.md', 'w', encoding='utf-8') as f:
         f.write(readme)
     print('✅ README.md 已更新')
