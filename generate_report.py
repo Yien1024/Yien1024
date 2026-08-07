@@ -88,7 +88,7 @@ def get_recent_stats(days):
             reviews += 1
     return (commits, prs, issues, reviews)
 
-# ---------------- 绘制日历热力图（圆角、图例右对齐、Less/More 加大） ----------------
+# ---------------- 绘制日历热力图（圆角、图例右对齐、Less/More 无重叠） ----------------
 def draw_calendar_heatmap(weeks_data, year_label, filename):
     num_weeks = len(weeks_data)
     grid = np.zeros((7, num_weeks), dtype=int)
@@ -146,24 +146,24 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
         ax.text(-0.5, 6 - r + 0.5, label, va='center', ha='right', fontsize=7)
 
     ax.set_xlim(0, num_weeks)
-    ax.set_ylim(-3, 7)
+    ax.set_ylim(-4, 7)                # y 下限扩大以容纳下移的 Less/More
     ax.set_aspect('equal')
     ax.axis('off')
 
     # 标题
     plt.title(title_text, fontsize=16, fontweight='bold', pad=15)
 
-    # ========== 图例（右对齐，紧凑间距，字体加大） ==========
+    # ========== 图例（Less 左，More 右对齐网格右边界，下移避免重叠） ==========
     legend_labels = ['0', '1-4', '5-9', '10-19', '20+']
     legend_colors = color_map
     block_size = 0.8
-    spacing = 1.2               # 紧凑间距
+    spacing = 1.2
     legend_width = len(legend_labels) * block_size + (len(legend_labels) - 1) * spacing
-    start_x = num_weeks - legend_width   # 右对齐网格右边界
+    start_x = num_weeks - legend_width   # 图例左边界，右对齐网格右边界
 
-    y_blocks = -2.2
-    y_labels = -3.1
-    y_lessmore = -1.8
+    y_blocks = -2.2      # 色块顶部
+    y_labels = -3.1      # 数字标签顶部
+    y_lessmore = -3.5    # Less/More 顶部，下移避免重叠
 
     for i, (color, label) in enumerate(zip(legend_colors, legend_labels)):
         x = start_x + i * (block_size + spacing)
@@ -177,9 +177,10 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
         ax.text(x + block_size/2, y_labels, label,
                 ha='center', va='top', fontsize=9)
 
-    # Less / More 字体 9
+    # Less：左对齐图例左边界
     ax.text(start_x, y_lessmore, 'Less', ha='left', fontsize=9, color='#586069')
-    ax.text(start_x + legend_width, y_lessmore, 'More', ha='right', fontsize=9, color='#586069')
+    # More：右对齐网格右边界
+    ax.text(num_weeks, y_lessmore, 'More', ha='right', fontsize=9, color='#586069')
 
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
