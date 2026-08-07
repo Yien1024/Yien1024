@@ -1,11 +1,11 @@
 # Hi there 👋
 
 ## 📊 GitHub 活动报告
-> 自动更新于 2026-08-07 04:46 UTC
+> 自动更新于 2026-08-07 04:53 UTC
 
 ### 🔥 贡献日历
-### 📅 Last 365 days
-![Last 365 days贡献日历](calendar_Last_365_days.png)
+### 📅 2026
+![2026贡献日历](calendar_2026.png)
 
 
 ### 🏆 最近活跃仓库 Top 5
