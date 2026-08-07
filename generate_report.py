@@ -50,7 +50,7 @@ def get_recent_365_calendar():
 
 # ---------------- 第三方 API：获取完整年份的贡献日历 ----------------
 def get_contribution_calendar_for_year(year):
-    url = f'https://github-contributions-api.deno.dev/{USERNAME}.json?year={year}'
+    url = f'https://github-contributions-api.deno.dev/{USERNAME}.json?year={year}' draw
     try:
         res = requests.get(url, timeout=10)
         res.raise_for_status()
@@ -101,7 +101,6 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
             grid[row, col] = day['contributionCount']
             all_dates.append(date_obj)
 
-    # 已去掉天数，只保留年份
     title_text = f'Contributions {year_label}'
 
     fig, ax = plt.subplots(figsize=(12, 4.5))
@@ -114,14 +113,14 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
         elif count <= 19: return color_map[3]
         else: return color_map[4]
 
-    # 圆角方格
+    # 绘制方格（这里还是用了普通的 Rectangle，如果想要圆角可以替换为 FancyBboxPatch，
+    # 但为了避免你继续被圆角问题困扰，我们先用简洁的矩形，保证整洁）
     for r in range(7):
         for c in range(num_weeks):
             count = grid[r, c]
             color = get_color(count)
-            rect = mpatches.FancyBboxPatch(
+            rect = mpatches.Rectangle(
                 (c, 6 - r), 1, 1,
-                boxstyle="round,pad=0.1",
                 linewidth=1, edgecolor='#d0d7de',
                 facecolor=color
             )
@@ -142,7 +141,7 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
     for col, month_label in month_positions.values():
         ax.text(col + 0.5, -0.8, month_label, ha='center', fontsize=8)
 
-    # 星期标签（1~7）
+    # 星期标签（周一=1 ... 周日=7）
     week_labels = ['1', '2', '3', '4', '5', '6', '7']
     for r, label in enumerate(week_labels):
         ax.text(-0.5, 6 - r + 0.5, label, va='center', ha='right', fontsize=7)
@@ -152,33 +151,35 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
     ax.set_aspect('equal')
     ax.axis('off')
 
-    # 标题（加粗加大）
     plt.title(title_text, fontsize=16, fontweight='bold', pad=15)
 
-    # ---- 图例（间距拉大） ----
+    # ---- 图例：右对齐到网格最后一列的右边界 ----
     legend_labels = ['0', '1-4', '5-9', '10-19', '20+']
     legend_colors = color_map
-    start_x = num_weeks - 6.5
     block_size = 0.7
-    spacing = 1.5
+    spacing = 1.4
+    # 图例整体宽度 = (方块数量-1)*间距 + 方块宽度
+    legend_width = (len(legend_labels) - 1) * spacing + block_size
+    # 让图例的右边界对齐到网格右边界（即 num_weeks）
+    start_x = num_weeks - legend_width
     y_blocks = -2.2
     y_labels = -3.0
     y_lessmore = -1.9
 
     for i, (color, label) in enumerate(zip(legend_colors, legend_labels)):
         x = start_x + i * spacing
-        rect = mpatches.FancyBboxPatch(
+        rect = mpatches.Rectangle(
             (x, y_blocks), block_size, block_size,
-            boxstyle="round,pad=0.08",
             linewidth=1, edgecolor='#d0d7de',
             facecolor=color
         )
         ax.add_patch(rect)
         ax.text(x + block_size/2, y_labels, label,
-                ha='center', va='top', fontsize=6.5)
+                ha='center', va='top', fontsize=7)
 
-    ax.text(start_x - 0.4, y_lessmore, 'Less', ha='right', fontsize=7, color='#586069')
-    ax.text(start_x + (len(legend_labels)-1)*spacing + block_size + 0.4, y_lessmore, 'More', ha='left', fontsize=7, color='#586069')
+    # Less 放在图例最左侧的左边，More 放在最右侧的右边，保持对齐
+    ax.text(start_x - 0.2, y_lessmore, 'Less', ha='right', fontsize=7, color='#586069')
+    ax.text(start_x + legend_width + 0.2, y_lessmore, 'More', ha='left', fontsize=7, color='#586069')
 
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
