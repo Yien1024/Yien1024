@@ -12,7 +12,8 @@ repo_full = os.environ.get('GITHUB_REPOSITORY', '')
 if repo_full:
     USERNAME = repo_full.split('/')[0]
 else:
-    USERNAME = '你的GitHub用户名'   # 本地测试时可手动填写
+    # 本地测试时可手动填写你的 GitHub 用户名
+    USERNAME = '你的GitHub用户名'
 
 TOKEN = os.environ.get('GH_TOKEN')
 if not TOKEN:
@@ -71,12 +72,8 @@ def get_recent_stats(days):
             reviews += 1
     return (commits, prs, issues, reviews)
 
-# ---------------- 绘制日历热力图（GitHub 风格，无数字，有图例） ----------------
+# ---------------- 绘制日历热力图（圆角方格 + 图例） ----------------
 def draw_calendar_heatmap(weeks_data, filename):
-    """
-    周一起始（周一=1 ... 周日=7）的贡献日历热力图。
-    格子颜色深度表示贡献量，不显示数字，右下角添加颜色图例。
-    """
     num_weeks = len(weeks_data)
     grid = np.zeros((7, num_weeks), dtype=int)
     all_dates = []
@@ -87,9 +84,8 @@ def draw_calendar_heatmap(weeks_data, filename):
             grid[row, col] = day['contributionCount']
             all_dates.append(date_obj)
 
-    fig, ax = plt.subplots(figsize=(12, 4))  # 高度稍增加，给图例留空间
+    fig, ax = plt.subplots(figsize=(12, 4.5))
 
-    # GitHub 颜色梯度（从浅到深）
     color_map = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39']
     def get_color(count):
         if count <= 0: return color_map[0]
@@ -98,14 +94,17 @@ def draw_calendar_heatmap(weeks_data, filename):
         elif count <= 19: return color_map[3]
         else: return color_map[4]
 
-    # 绘制格子（无数字）
+    # 绘制圆角格子
     for r in range(7):
         for c in range(num_weeks):
             count = grid[r, c]
             color = get_color(count)
-            rect = mpatches.Rectangle((c, 6 - r), 1, 1,
-                                      linewidth=1, edgecolor='#d0d7de',
-                                      facecolor=color)
+            rect = mpatches.FancyBboxPatch(
+                (c, 6 - r), 1, 1,
+                boxstyle="round,pad=0.1",
+                linewidth=1, edgecolor='#d0d7de',
+                facecolor=color
+            )
             ax.add_patch(rect)
 
     # 月份标签
@@ -121,39 +120,49 @@ def draw_calendar_heatmap(weeks_data, filename):
                 if month_key in month_positions:
                     break
     for col, month_label in month_positions.values():
-        ax.text(col + 0.5, -0.5, month_label, ha='center', fontsize=8)
+        ax.text(col + 0.5, -0.8, month_label, ha='center', fontsize=8)
 
-    # 星期标签（左侧）：周一 = 1, ..., 周日 = 7
-    week_labels = ['1', '2', '3', '4', '5', '6', '7']  # 周一~周日
+    # 星期标签（周一=1 ... 周日=7）
+    week_labels = ['1', '2', '3', '4', '5', '6', '7']
     for r, label in enumerate(week_labels):
         ax.text(-0.5, 6 - r + 0.5, label, va='center', ha='right', fontsize=7)
 
     ax.set_xlim(0, num_weeks)
-    ax.set_ylim(0, 7)
+    ax.set_ylim(-3, 7)
     ax.set_aspect('equal')
     ax.axis('off')
 
-    # 标题（包含年份）
+    # 标题（自动年份）
     if all_dates:
         latest_year = max(d.year for d in all_dates)
     else:
         latest_year = datetime.utcnow().year
-    plt.title(f'Contribution Calendar ({latest_year})', fontsize=12, pad=10)
+    plt.title(f'Contribution Calendar ({latest_year})', fontsize=12, pad=15)
 
-    # ---- 添加右下角图例 ----
+    # ---- 图例（圆角色块，清晰排列） ----
     legend_labels = ['0', '1-4', '5-9', '10-19', '20+']
     legend_colors = color_map
-    # 在图右侧下方位置添加小方块
+    start_x = num_weeks - 6
+    block_size = 0.8
+    spacing = 1.3
+    y_blocks = -2.2
+    y_labels = -2.9
+    y_lessmore = -1.9
+
     for i, (color, label) in enumerate(zip(legend_colors, legend_labels)):
-        rect = mpatches.Rectangle((num_weeks - 2 + i * 1.2, -1.8), 0.8, 0.8,
-                                  linewidth=1, edgecolor='#d0d7de',
-                                  facecolor=color)
+        x = start_x + i * spacing
+        rect = mpatches.FancyBboxPatch(
+            (x, y_blocks), block_size, block_size,
+            boxstyle="round,pad=0.1",
+            linewidth=1, edgecolor='#d0d7de',
+            facecolor=color
+        )
         ax.add_patch(rect)
-        ax.text(num_weeks - 2 + i * 1.2 + 0.4, -2.4, label,
-                ha='center', va='top', fontsize=7)
-    # “Less” 和 “More” 文字
-    ax.text(num_weeks - 2, -1.2, 'Less', ha='center', fontsize=7, color='#586069')
-    ax.text(num_weeks - 2 + (len(legend_labels)-1)*1.2, -1.2, 'More', ha='center', fontsize=7, color='#586069')
+        ax.text(x + block_size/2, y_labels, label,
+                ha='center', va='top', fontsize=8)
+
+    ax.text(start_x - 0.2, y_lessmore, 'Less', ha='right', fontsize=8, color='#586069')
+    ax.text(start_x + (len(legend_labels)-1)*spacing + block_size + 0.2, y_lessmore, 'More', ha='left', fontsize=8, color='#586069')
 
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
