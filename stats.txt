@@ -1,0 +1,4 @@
+Weekly: (0, 0, 0, 0)
+Monthly: (0, 0, 0, 0)
+Yearly: (0, 0, 0, 0)
+Streak: 3
