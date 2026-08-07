@@ -89,7 +89,7 @@ def get_recent_stats(days):
             reviews += 1
     return (commits, prs, issues, reviews)
 
-# ---------------- 绘制日历热力图（图例右对齐，普通矩形，标题加粗） ----------------
+# ---------------- 绘制日历热力图（圆角、图例字体加大、完美对齐） ----------------
 def draw_calendar_heatmap(weeks_data, year_label, filename):
     num_weeks = len(weeks_data)
     grid = np.zeros((7, num_weeks), dtype=int)
@@ -113,13 +113,14 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
         elif count <= 19: return color_map[3]
         else: return color_map[4]
 
-    # 绘制矩形
+    # 绘制圆角方格（如果 matploblib 版本过低会退化为直角，不影响运行）
     for r in range(7):
         for c in range(num_weeks):
             count = grid[r, c]
             color = get_color(count)
-            rect = mpatches.Rectangle(
+            rect = mpatches.FancyBboxPatch(
                 (c, 6 - r), 1, 1,
+                boxstyle="round,pad=0.12",
                 linewidth=1, edgecolor='#d0d7de',
                 facecolor=color
             )
@@ -150,33 +151,37 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
     ax.set_aspect('equal')
     ax.axis('off')
 
+    # 标题
     plt.title(title_text, fontsize=16, fontweight='bold', pad=15)
 
-    # ---- 图例：右对齐，Less/More 与网格边缘对齐 ----
+    # ========== 图例（字体加大版） ==========
     legend_labels = ['0', '1-4', '5-9', '10-19', '20+']
     legend_colors = color_map
-    block_size = 0.7
-    spacing = 1.4
-    legend_width = (len(legend_labels) - 1) * spacing + block_size
+    block_size = 0.8
+    spacing = 1.5
+    legend_width = len(legend_labels) * block_size + (len(legend_labels) - 1) * spacing
     start_x = num_weeks - legend_width
+
     y_blocks = -2.2
-    y_labels = -3.0
-    y_lessmore = -1.9
+    y_labels = -3.1    # 数字标签稍微下移，防止与色块重叠
+    y_lessmore = -1.8  # Less/More 稍微上提
 
     for i, (color, label) in enumerate(zip(legend_colors, legend_labels)):
-        x = start_x + i * spacing
-        rect = mpatches.Rectangle(
+        x = start_x + i * (block_size + spacing)
+        rect = mpatches.FancyBboxPatch(
             (x, y_blocks), block_size, block_size,
+            boxstyle="round,pad=0.1",
             linewidth=1, edgecolor='#d0d7de',
             facecolor=color
         )
         ax.add_patch(rect)
+        # 数字字体加大到 9
         ax.text(x + block_size/2, y_labels, label,
-                ha='center', va='top', fontsize=7)
+                ha='center', va='top', fontsize=9)
 
-    # Less 左对齐图例左端，More 右对齐图例右端（也是网格右边界）
-    ax.text(start_x, y_lessmore, 'Less', ha='left', fontsize=7, color='#586069')
-    ax.text(start_x + legend_width, y_lessmore, 'More', ha='right', fontsize=7, color='#586069')
+    # Less/More 字体也加大到 9
+    ax.text(start_x, y_lessmore, 'Less', ha='left', fontsize=9, color='#586069')
+    ax.text(start_x + legend_width, y_lessmore, 'More', ha='right', fontsize=9, color='#586069')
 
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
