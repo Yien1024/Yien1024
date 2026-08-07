@@ -12,8 +12,7 @@ repo_full = os.environ.get('GITHUB_REPOSITORY', '')
 if repo_full:
     USERNAME = repo_full.split('/')[0]
 else:
-    # 如果不在 Actions 环境，请手动替换为你的用户名
-    USERNAME = '你的GitHub用户名'
+    USERNAME = '你的GitHub用户名'   # 本地测试时可手动填写
 
 TOKEN = os.environ.get('GH_TOKEN')
 if not TOKEN:
@@ -72,34 +71,25 @@ def get_recent_stats(days):
             reviews += 1
     return (commits, prs, issues, reviews)
 
-# ---------------- 绘制柱状图（4 个柱子） ----------------
-def draw_bar_chart(values, title, filename):
-    labels = ['Commits', 'PRs', 'Issues', 'Reviews']
-    colors = ['#2ea44f', '#0366d6', '#d73a49', '#6f42c1']
-    plt.figure(figsize=(5, 3.5))
-    bars = plt.bar(labels, values, color=colors)
-    plt.title(title, fontsize=13)
-    plt.ylabel('Count')
-    for bar, val in zip(bars, values):
-        plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.3,
-                 str(val), ha='center', va='bottom', fontweight='bold')
-    plt.tight_layout()
-    plt.savefig(filename, dpi=120)
-    plt.close()
-
-# ---------------- 绘制日历热力图 ----------------
+# ---------------- 绘制日历热力图（GitHub 风格，无数字，有图例） ----------------
 def draw_calendar_heatmap(weeks_data, filename):
+    """
+    周一起始（周一=1 ... 周日=7）的贡献日历热力图。
+    格子颜色深度表示贡献量，不显示数字，右下角添加颜色图例。
+    """
     num_weeks = len(weeks_data)
     grid = np.zeros((7, num_weeks), dtype=int)
     all_dates = []
     for col, week in enumerate(weeks_data):
         for day in week['contributionDays']:
             date_obj = datetime.strptime(day['date'], '%Y-%m-%d')
-            weekday = (date_obj.weekday() + 1) % 7  # Sunday=0
-            grid[weekday, col] = day['contributionCount']
+            row = date_obj.weekday()  # 0=Monday, 6=Sunday
+            grid[row, col] = day['contributionCount']
             all_dates.append(date_obj)
 
-    fig, ax = plt.subplots(figsize=(12, 3))
+    fig, ax = plt.subplots(figsize=(12, 4))  # 高度稍增加，给图例留空间
+
+    # GitHub 颜色梯度（从浅到深）
     color_map = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39']
     def get_color(count):
         if count <= 0: return color_map[0]
@@ -108,6 +98,7 @@ def draw_calendar_heatmap(weeks_data, filename):
         elif count <= 19: return color_map[3]
         else: return color_map[4]
 
+    # 绘制格子（无数字）
     for r in range(7):
         for c in range(num_weeks):
             count = grid[r, c]
@@ -117,6 +108,7 @@ def draw_calendar_heatmap(weeks_data, filename):
                                       facecolor=color)
             ax.add_patch(rect)
 
+    # 月份标签
     month_positions = {}
     for date in all_dates:
         month_key = date.strftime('%Y-%m')
@@ -128,19 +120,41 @@ def draw_calendar_heatmap(weeks_data, filename):
                         break
                 if month_key in month_positions:
                     break
-
     for col, month_label in month_positions.values():
         ax.text(col + 0.5, -0.5, month_label, ha='center', fontsize=8)
 
-    weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-    for r, label in enumerate(weekdays):
+    # 星期标签（左侧）：周一 = 1, ..., 周日 = 7
+    week_labels = ['1', '2', '3', '4', '5', '6', '7']  # 周一~周日
+    for r, label in enumerate(week_labels):
         ax.text(-0.5, 6 - r + 0.5, label, va='center', ha='right', fontsize=7)
 
     ax.set_xlim(0, num_weeks)
     ax.set_ylim(0, 7)
     ax.set_aspect('equal')
     ax.axis('off')
-    plt.title('Contribution Calendar (last year)', fontsize=12, pad=10)
+
+    # 标题（包含年份）
+    if all_dates:
+        latest_year = max(d.year for d in all_dates)
+    else:
+        latest_year = datetime.utcnow().year
+    plt.title(f'Contribution Calendar ({latest_year})', fontsize=12, pad=10)
+
+    # ---- 添加右下角图例 ----
+    legend_labels = ['0', '1-4', '5-9', '10-19', '20+']
+    legend_colors = color_map
+    # 在图右侧下方位置添加小方块
+    for i, (color, label) in enumerate(zip(legend_colors, legend_labels)):
+        rect = mpatches.Rectangle((num_weeks - 2 + i * 1.2, -1.8), 0.8, 0.8,
+                                  linewidth=1, edgecolor='#d0d7de',
+                                  facecolor=color)
+        ax.add_patch(rect)
+        ax.text(num_weeks - 2 + i * 1.2 + 0.4, -2.4, label,
+                ha='center', va='top', fontsize=7)
+    # “Less” 和 “More” 文字
+    ax.text(num_weeks - 2, -1.2, 'Less', ha='center', fontsize=7, color='#586069')
+    ax.text(num_weeks - 2 + (len(legend_labels)-1)*1.2, -1.2, 'More', ha='center', fontsize=7, color='#586069')
+
     plt.tight_layout()
     plt.savefig(filename, dpi=150, bbox_inches='tight')
     plt.close()
@@ -223,45 +237,30 @@ def calculate_streak(weeks_data):
     return streak
 
 # ---------------- 生成 README.md ----------------
-def generate_readme(weekly, monthly, yearly, streak, top_repos_md, calendar_filename):
+def generate_readme(monthly, yearly, streak, top_repos_md):
     now = datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
     readme = f"""# Hi there 👋
 
 ## 📊 GitHub 活动报告
 > 自动更新于 {now}
 
-### 🔥 连续贡献
-当前连续 **{streak}** 天
-
-### 📈 近 7 天贡献趋势
-![近7天趋势](weekly_line.png)
-
-### 📅 周报（近 7 天）
-- 代码提交：**{weekly[0]}** 次
-- 发起 PR：**{weekly[1]}** 个
-- 新建 Issue：**{weekly[2]}** 个
-- 代码审查：**{weekly[3]}** 次
-![周报](weekly.png)
-
-### 📅 月报（近 30 天）
-- 代码提交：**{monthly[0]}** 次
-- 发起 PR：**{monthly[1]}** 个
-- 新建 Issue：**{monthly[2]}** 个
-- 代码审查：**{monthly[3]}** 次
-![月报](monthly.png)
-
-### 📅 年报（近 365 天）
-- 代码提交：**{yearly[0]}** 次
-- 发起 PR：**{yearly[1]}** 个
-- 新建 Issue：**{yearly[2]}** 个
-- 代码审查：**{yearly[3]}** 次
-![年报](yearly.png)
+### 🔥 贡献日历
+![贡献日历](calendar.png)
 
 ### 🏆 最近活跃仓库 Top 5
 {top_repos_md}
 
-### 🔥 贡献日历
-![贡献日历]({calendar_filename})
+### 📈 近 7 天贡献趋势
+![近7天趋势](weekly_line.png)
+
+### 🔥 连续贡献
+当前连续 **{streak}** 天
+
+### 📅 月报（近 30 天）
+代码提交：**{monthly[0]}** 次　|　发起 PR：**{monthly[1]}** 个　|　新建 Issue：**{monthly[2]}** 个　|　代码审查：**{monthly[3]}** 次
+
+### 📅 年报（近 365 天）
+代码提交：**{yearly[0]}** 次　|　发起 PR：**{yearly[1]}** 个　|　新建 Issue：**{yearly[2]}** 个　|　代码审查：**{yearly[3]}** 次
 
 ---
 
@@ -289,30 +288,20 @@ def main():
     streak = calculate_streak(calendar['weeks'])
     print(f'🔥 当前连续贡献 {streak} 天')
 
-    w = get_recent_stats(7)
     m = get_recent_stats(30)
     y = get_recent_stats(365)
-
-    draw_bar_chart(w, 'Weekly Activity', 'weekly.png')
-    draw_bar_chart(m, 'Monthly Activity', 'monthly.png')
-    draw_bar_chart(y, 'Yearly Activity', 'yearly.png')
-    print('✅ 柱状图已生成')
 
     top5 = top_repos(days=90)
     top_repos_md = format_top_repos(top5)
     print('✅ 活跃仓库 Top 5 已统计')
 
-    readme = generate_readme(w, m, y, streak, top_repos_md, 'calendar.png')
+    readme = generate_readme(m, y, streak, top_repos_md)
     with open('README.md', 'w', encoding='utf-8') as f:
         f.write(readme)
     print('✅ README.md 已更新')
 
     with open('stats.txt', 'w') as f:
-        f.write(f'Weekly: {w}\nMonthly: {m}\nYearly: {y}\nStreak: {streak}\n')
+        f.write(f'Monthly: {m}\nYearly: {y}\nStreak: {streak}\n')
 
 if __name__ == '__main__':
     main()
-
-
-
-
