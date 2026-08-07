@@ -50,7 +50,7 @@ def get_recent_365_calendar():
 
 # ---------------- 第三方 API：获取完整年份的贡献日历 ----------------
 def get_contribution_calendar_for_year(year):
-    url = f'https://github-contributions-api.deno.dev/{USERNAME}.json?year={year}' draw
+    url = f'https://github-contributions-api.deno.dev/{USERNAME}.json?year={year}'
     try:
         res = requests.get(url, timeout=10)
         res.raise_for_status()
@@ -89,7 +89,7 @@ def get_recent_stats(days):
             reviews += 1
     return (commits, prs, issues, reviews)
 
-# ---------------- 绘制日历热力图（圆角、图例优化、标题加粗） ----------------
+# ---------------- 绘制日历热力图（图例右对齐，普通矩形，标题加粗） ----------------
 def draw_calendar_heatmap(weeks_data, year_label, filename):
     num_weeks = len(weeks_data)
     grid = np.zeros((7, num_weeks), dtype=int)
@@ -113,8 +113,7 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
         elif count <= 19: return color_map[3]
         else: return color_map[4]
 
-    # 绘制方格（这里还是用了普通的 Rectangle，如果想要圆角可以替换为 FancyBboxPatch，
-    # 但为了避免你继续被圆角问题困扰，我们先用简洁的矩形，保证整洁）
+    # 绘制普通矩形（清晰稳定）
     for r in range(7):
         for c in range(num_weeks):
             count = grid[r, c]
@@ -141,7 +140,7 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
     for col, month_label in month_positions.values():
         ax.text(col + 0.5, -0.8, month_label, ha='center', fontsize=8)
 
-    # 星期标签（周一=1 ... 周日=7）
+    # 星期标签（1~7）
     week_labels = ['1', '2', '3', '4', '5', '6', '7']
     for r, label in enumerate(week_labels):
         ax.text(-0.5, 6 - r + 0.5, label, va='center', ha='right', fontsize=7)
@@ -153,14 +152,12 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
 
     plt.title(title_text, fontsize=16, fontweight='bold', pad=15)
 
-    # ---- 图例：右对齐到网格最后一列的右边界 ----
+    # ---- 图例：右对齐 ----
     legend_labels = ['0', '1-4', '5-9', '10-19', '20+']
     legend_colors = color_map
     block_size = 0.7
     spacing = 1.4
-    # 图例整体宽度 = (方块数量-1)*间距 + 方块宽度
     legend_width = (len(legend_labels) - 1) * spacing + block_size
-    # 让图例的右边界对齐到网格右边界（即 num_weeks）
     start_x = num_weeks - legend_width
     y_blocks = -2.2
     y_labels = -3.0
@@ -177,7 +174,6 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
         ax.text(x + block_size/2, y_labels, label,
                 ha='center', va='top', fontsize=7)
 
-    # Less 放在图例最左侧的左边，More 放在最右侧的右边，保持对齐
     ax.text(start_x - 0.2, y_lessmore, 'Less', ha='right', fontsize=7, color='#586069')
     ax.text(start_x + legend_width + 0.2, y_lessmore, 'More', ha='left', fontsize=7, color='#586069')
 
@@ -311,7 +307,7 @@ def main():
     current_year = datetime.utcnow().year
     years_with_calendar = []
 
-    # 1. 今年日历：优先用完整年份，失败则用最近365天但标题仍显示年份
+    # 今年日历
     weeks_this_year = get_contribution_calendar_for_year(current_year)
     if weeks_this_year:
         draw_calendar_heatmap(weeks_this_year, str(current_year), f'calendar_{current_year}.png')
@@ -323,10 +319,10 @@ def main():
         weeks_recent = calendar_recent_data['weeks']
         draw_calendar_heatmap(weeks_recent, str(current_year), f'calendar_{current_year}.png')
         years_with_calendar.append(str(current_year))
-        print('⚠️ 今年完整数据获取失败，已使用最近365天数据（标题仍显示年份）')
+        print('⚠️ 今年完整数据获取失败，已使用最近365天数据')
         calendar_recent = weeks_recent
 
-    # 2. 过去两年
+    # 过去两年
     for yr in [current_year-1, current_year-2]:
         weeks_past = get_contribution_calendar_for_year(yr)
         if weeks_past:
@@ -336,23 +332,18 @@ def main():
         else:
             print(f'⚠️ 跳过 {yr} 年（无数据）')
 
-    # 3. 近7天折线图
     draw_weekly_line_chart(calendar_recent, 'weekly_line.png')
     print('✅ 近7天趋势图已生成')
 
-    # 4. 连续贡献
     streak = calculate_streak(calendar_recent)
     print(f'🔥 当前连续贡献 {streak} 天')
 
-    # 5. 月报/年报
     m = get_recent_stats(30)
     y = get_recent_stats(365)
 
-    # 6. 活跃仓库
     top5 = top_repos(days=90)
     top_repos_md = format_top_repos(top5)
 
-    # 7. 生成 README
     readme = generate_readme(m, y, streak, top_repos_md, years_with_calendar)
     with open('README.md', 'w', encoding='utf-8') as f:
         f.write(readme)
