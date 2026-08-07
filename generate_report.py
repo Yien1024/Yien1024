@@ -112,7 +112,7 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
         elif count <= 19: return color_map[3]
         else: return color_map[4]
 
-    # 圆角方格
+    # 圆角方格（环境不支持时退化为普通矩形，不影响运行）
     for r in range(7):
         for c in range(num_weeks):
             count = grid[r, c]
@@ -146,23 +146,24 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
         ax.text(-0.5, 6 - r + 0.5, label, va='center', ha='right', fontsize=7)
 
     ax.set_xlim(0, num_weeks)
-    ax.set_ylim(-4, 7)
+    ax.set_ylim(-4, 7)                # y 下限扩大以容纳下移的 Less/More
     ax.set_aspect('equal')
     ax.axis('off')
 
+    # 标题
     plt.title(title_text, fontsize=16, fontweight='bold', pad=15)
 
-    # ========== 图例 ==========
+    # ========== 图例（Less 左，More 右对齐网格右边界，下移避免重叠） ==========
     legend_labels = ['0', '1-4', '5-9', '10-19', '20+']
     legend_colors = color_map
     block_size = 0.8
     spacing = 1.2
     legend_width = len(legend_labels) * block_size + (len(legend_labels) - 1) * spacing
-    start_x = num_weeks - legend_width
+    start_x = num_weeks - legend_width   # 图例左边界，右对齐网格右边界
 
-    y_blocks = -2.2
-    y_labels = -3.1
-    y_lessmore = -3.5
+    y_blocks = -2.2      # 色块顶部
+    y_labels = -3.1      # 数字标签顶部
+    y_lessmore = -3.5    # Less/More 顶部，下移避免重叠
 
     for i, (color, label) in enumerate(zip(legend_colors, legend_labels)):
         x = start_x + i * (block_size + spacing)
@@ -176,7 +177,9 @@ def draw_calendar_heatmap(weeks_data, year_label, filename):
         ax.text(x + block_size/2, y_labels, label,
                 ha='center', va='top', fontsize=9)
 
+    # Less：左对齐图例左边界
     ax.text(start_x, y_lessmore, 'Less', ha='left', fontsize=9, color='#586069')
+    # More：右对齐网格右边界
     ax.text(num_weeks, y_lessmore, 'More', ha='right', fontsize=9, color='#586069')
 
     plt.tight_layout()
@@ -260,7 +263,7 @@ def calculate_streak(weeks_data):
         check_date -= timedelta(days=1)
     return streak
 
-# ---------------- 生成 README.md（包含部署说明 + 报告） ----------------
+# ---------------- 生成 README.md（包含贡献日历） ----------------
 def generate_readme(monthly, yearly, streak, top_repos_md, years_with_calendar):
     now = datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
     calendar_imgs = ""
@@ -268,33 +271,9 @@ def generate_readme(monthly, yearly, streak, top_repos_md, years_with_calendar):
         file_suffix = yr_label.replace(' ', '_')
         calendar_imgs += f"### 📅 {yr_label}\n![{yr_label}贡献日历](calendar_{file_suffix}.png)\n\n"
 
-    # 润色后的部署说明（简洁、友好）
-    setup_guide = f"""## 🚀 如何拥有自己的自动报告？
-
-> 如果你是通过 **Use this template** 创建的仓库，请按下面 3 步操作：
-
-### 1️⃣ 创建个人访问令牌
-前往 [GitHub Tokens 设置](https://github.com/settings/tokens) 生成一个 **classic token**，勾选 `repo` 和 `user` 权限，复制生成的 token。
-
-### 2️⃣ 将 token 存入仓库 Secret
-在当前仓库页面，进入 **Settings** → **Secrets and variables** → **Actions**，点击 **New repository secret**：
-- **Name** 填：`GH_TOKEN`
-- **Value** 粘贴刚才复制的 token
-
-### 3️⃣ 启动自动生成
-点击仓库顶部的 **Actions** 标签，选择 **Update GitHub Report** 工作流，点击 **Run workflow** 手动运行一次。  
-稍等片刻，刷新你的 GitHub 个人主页，专属活动报告就出现了！
-
-✅ 报告会在每天 **UTC 2:00** 自动更新，无需额外操作。
-
----
-
-"""
-
     readme = f"""# Hi there 👋
 
-{setup_guide}
-## 📊 我的 GitHub 活动报告
+## 📊 GitHub 活动报告
 > 自动更新于 {now}
 
 ### 🔥 贡献日历
