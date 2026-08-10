@@ -1,39 +1,150 @@
-# Hi there 👋
+<div align="center">
+  
+# ✨ Yien1024 ✨
 
-## 📊 GitHub 活动报告
-> 自动更新于 2026-08-10 03:13 UTC
+<!-- 打字效果动画 -->
+<a href="https://git.io/typing-svg">
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=28&duration=3000&pause=500&color=58A6FF&center=true&vCenter=true&width=435&lines=Hi+there!+%F0%9F%91%8B;Welcome+to+my+profile;Code+%7C+Create+%7C+Explore" alt="Typing SVG" />
+</a>
 
-### 🔥 贡献日历
-### 📅 2026
+<!-- 社交徽章 -->
+<p>
+  <a href="https://github.com/Yien1024">
+    <img src="https://img.shields.io/badge/GitHub-Yien1024-181717?style=flat-square&logo=github" alt="GitHub" />
+  </a>
+  <a href="https://github.com/Yien1024/Yien1024">
+    <img src="https://img.shields.io/github/followers/Yien1024?style=flat-square&logo=github&label=Followers" alt="Followers" />
+  </a>
+  <a href="https://github.com/Yien1024/Yien1024">
+    <img src="https://img.shields.io/github/stars/Yien1024?style=flat-square&logo=github&label=Stars" alt="Stars" />
+  </a>
+  <img src="https://komarev.com/ghpvc/?username=Yien1024&style=flat-square&color=blue" alt="Profile Views" />
+  <img src="https://img.shields.io/badge/Last%20Updated-2026-08-10%2006%3A11%20UTC-brightgreen?style=flat-square" alt="Last Updated" />
+</p>
+
+<img src="https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png" width="100%" />
+
+</div>
+
+## 👨‍💻 About Me
+
+```yaml
+name: Yien
+location: 🌏
+languages: [Python, JavaScript, HTML, CSS]
+interests: [Coding, Open Source, AI]
+```
+
+---
+
+## 🛠️ Tech Stack
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" />
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" />
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" />
+  <img src="https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white" />
+  <img src="https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white" />
+  <img src="https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" />
+  <img src="https://img.shields.io/badge/Markdown-000000?style=for-the-badge&logo=markdown&logoColor=white" />
+</p>
+
+---
+
+## 📊 GitHub Activity Report
+
+> ⏱️ 自动更新于 `2026-08-10 06:11 UTC`
+
+<div align="center">
+
+### 🔥 Contribution Calendar
+
 ![2026贡献日历](calendar_2026.png)
 
 
-### 🏆 最近活跃仓库 Top 5
-1. **Yien1024/AI_Live2D_DeepSeek** - 0 次提交
-2. **Yien1024/Yien1024** - 0 次提交
 
-### 📈 近 7 天贡献趋势
-![近7天趋势](weekly_line.png)
+### 📈 Multi-Time Range Activity Overview
 
-### 🔥 连续贡献
-当前连续 **5** 天
+| Period | Commits | PRs | Issues | Reviews |
+|--------|:-------:|:---:|:------:|:-------:|
+| 📅 **Last 7 days** | **0** | **0** | **0** | **0** |
+| 📅 **Last 14 days** | **0** | **0** | **0** | **0** |
+| 📅 **Last 30 days** | **0** | **0** | **0** | **0** |
+| 📅 **Last 90 days** | **0** | **0** | **0** | **0** |
+| 📅 **Last 365 days** | **0** | **0** | **0** | **0** |
 
-### 📅 月报（近 30 天）
-| 代码提交 | 发起 PR | 新建 Issue | 代码审查 |
-|--------|--------|----------|--------|
-| **0** 次 | **0** 个 | **0** 个 | **0** 次 |
+</div>
 
-### 📅 年报（近 365 天）
-| 代码提交 | 发起 PR | 新建 Issue | 代码审查 |
-|--------|--------|----------|--------|
-| **0** 次 | **0** 个 | **0** 个 | **0** 次 |
+### 🏆 Top Active Repositories (Last 90 Days)
+
+1. **[Yien1024/Yien1024](https://github.com/Yien1024/Yien1024)** — 0 次提交
+2. **[Yien1024/AI_Live2D_DeepSeek](https://github.com/Yien1024/AI_Live2D_DeepSeek)** — 0 次提交
+
+### 📈 7-Day Trend
+
+![7-Day Trend](weekly_line.png)
+
+### 🔥 Contribution Streak
+
+<div align="center">
+
+| Current Streak | Longest Streak |
+|:--------------:|:--------------:|
+| **6** days 🔥 | **6** days 🏆 |
+
+</div>
 
 ---
 
-### ✨ GitHub 统计
-![GitHub stats](https://github-readme-stats.vercel.app/api?username=Yien1024&show_icons=true&theme=github&hide_border=true)
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=Yien1024&layout=compact&theme=github&hide_border=true)
-![GitHub streak](https://github-readme-streak-stats.herokuapp.com/?user=Yien1024&theme=github&hide_border=true)
+## 🏆 GitHub Trophies
+
+<div align="center">
+
+![Trophies](https://github-profile-trophy.vercel.app/?username=Yien1024&theme=flat&no-frame=true&no-bg=true&margin-w=15&row=2&column=4)
+
+</div>
 
 ---
-*✨ 此报告由 GitHub Actions 每天自动生成*
+
+## ⏰ Live Time Zone Clock
+
+<div align="center">
+
+| 🌍 UTC | 🇨🇳 Beijing (CST) | 🇯🇵 Tokyo (JST) | 🇺🇸 New York (EST) | 🇬🇧 London (BST) |
+|:------:|:-----------------:|:---------------:|:------------------:|:----------------:|
+| 06:11 | 14:11 | 15:11 | 01:11 | 07:11 |
+
+</div>
+
+---
+
+## 📊 GitHub Stats
+
+<div align="center">
+
+| Stats | Languages | Streak |
+|:-----:|:---------:|:------:|
+| ![GitHub Stats](https://github-readme-stats.vercel.app/api?username=Yien1024&show_icons=true&theme=github&hide_border=true&count_private=true&include_all_commits=true) | ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=Yien1024&layout=compact&theme=github&hide_border=true) | ![GitHub Streak](https://github-readme-streak-stats.herokuapp.com/?user=Yien1024&theme=github&hide_border=true) |
+
+</div>
+
+---
+
+## 🐍 Contribution Snake
+
+<div align="center">
+
+![snake](https://github.com/Yien1024/Yien1024/blob/output/github-contribution-grid-snake.svg)
+
+</div>
+
+---
+
+<div align="center">
+
+### 💡 "Code is like humor. When you have to explain it, it's bad." — Cory House
+
+*✨ This profile README is auto-generated by GitHub Actions ✨*
+
+</div>

@@ -1,3 +1,30 @@
-Monthly: (0, 0, 0, 0)
-Yearly: (0, 0, 0, 0)
-Streak: 5
+{
+  "updated_at": "2026-08-10T06:11:58.726688",
+  "streak": 6,
+  "longest_streak": 6,
+  "weekly": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "monthly": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "yearly": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "timezones": {
+    "utc": "06:11",
+    "cst": "14:11",
+    "jst": "15:11",
+    "est": "01:11",
+    "bst": "07:11"
+  }
+}
